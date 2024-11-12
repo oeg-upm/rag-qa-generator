@@ -20,7 +20,7 @@ torch.cuda.init()
 #os.environ["OPENAI_API_KEY"] = None
 
 # Set your Hugging Face API token
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "your_huggingface_token"
 login(token=os.environ["HUGGINGFACEHUB_API_TOKEN"])
 
 # Configure CUDA environment variables
