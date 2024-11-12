@@ -36,7 +36,7 @@ conda install -c conda-forge libmagic -y
 
 ## Uso
 
-Actualizar en main.py el path con el directorio con los documentos para genenerar las pregruntas.
+Actualizar en main.py el path con el directorio con los documentos para genenerar las preguntas.
 
 ### Ejecutar
 ```bash
