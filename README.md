@@ -1,6 +1,6 @@
 # rag-qa-generator
 
-Proyecto para generar respuestas a preguntas utilizando ragas
+Proyecto para generar preguntas sobre documentos utilizando ragas
 
 ## Requisitos Previos
 
