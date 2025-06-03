@@ -13,9 +13,8 @@ Este proyecto facilita la generación automática de preguntas a partir de un co
 ## 💻 Requisitos Previos ✅
 
 - Python 3.11 🐍
-- pip 📦
-- conda (para instalar libmagic) 🐧
-- Git 🔧
+- pip 📦 
+- Git 🐧
 - Hardware compatible con VLLM y Ollama 💻
 
 ---
@@ -50,8 +49,6 @@ huggingface-cli login
 ![Hugginface Configuración Token](imagenes/hugginface_token.png)
 - Introduce el token cuando se te solicite ✍️
 
-🔗 **Enlace de la imagen:** https://github.com/tu_usuario/rag-qa-generator/blob/main/imagenes/hugginface_token.png
-
 ### 4. Instalar y configurar DeepEval 🧠
 
 ```bash
@@ -62,11 +59,11 @@ deepeval login --confident-api-key [TU-API-KEY-DE-DEEPEVAL]
 **Obtener API key de DeepEval:**
 - Regístrate en https://deepeval.com/ 📝
 - Sigue las instrucciones en: https://deepeval.com/docs/getting-started
-- DeepEval es gratuito y permite mantener todos los resultados de evaluación en la nube ☁️
+- DeepEval es gratuito y con su api-key permite mantener todos los resultados de evaluación en la nube ☁️
 
 ### 5. Aplicar modificaciones personalizadas 💡
 
-**Importante:** Reemplaza los archivos modificados de la carpeta `codigo_modificado/` en tu instalación local de DeepEval. 🔄
+**Importante:** Reemplaza los archivos modificados de la carpeta `codigo_modificado/` en tu instalación local de la librería de DeepEval. 🔄
 
 ---
 
@@ -152,9 +149,9 @@ Puedes saltar pasos específicos usando flags:
 python3 main.py --skip_step1 --skip_step2 --skip_step3
 ```
 
-- `--skip_step1`: Saltar procesamiento de documentos ⏭️
-- `--skip_step2`: Saltar generación de preguntas ⏭️
-- `--skip_step3`: Saltar validación inicial ⏭️
+- `--skip_step1`: Saltar generación ⏭️
+- `--skip_step2`: Saltar reformulación ⏭️
+- `--skip_step3`: Saltar módulo RAG ⏭️
 
 ### Resultados 📊
 
@@ -172,4 +169,4 @@ Una vez generado el dataset, puedes evaluarlo ejecutando:
 ```bash
 python3 mod_4_evaluar.py
 ```
-Este script realizará la evaluación automática de las preguntas y respuestas generadas. ✔️
+Este script realizará la evaluación automática del dataset final. 
