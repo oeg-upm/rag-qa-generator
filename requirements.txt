@@ -1,23 +1,22 @@
-huggingface_hub==0.26.1
-transformers==4.46.0
-sentence_transformers==3.2.1
-text_generation==0.7.0
-google_search_results==2.4.2
-numexpr==2.10.1
-langchainhub==0.1.21
-sentencepiece==0.2.0
-jinja2==3.1.4
-bitsandbytes==0.44.1
-accelerate==1.0.1
-torch==2.5.0
-ragas==0.2.4
-langchain_huggingface==0.1.0
-langchain_ollama==0.2.0
-datasets==3.0.2
-unstructured==0.16.1
-libmagic==1.0
-
-#pip install --prefer-binary "unstructured[pdf]"
-#pip install --prefer-binary "unstructured[md]"
-#pip install "accelerate>=0.26.0"
-#conda install -c conda-forge libmagic -y
+deepeval==2.7.6
+chromadb==1.0.6
+pypdf==5.4.0
+pandas==2.2.3
+vllm==0.8.4
+transformers==4.51.3
+sentence-transformers==4.1.0
+rouge-score==0.1.2
+faiss-cpu==1.11.0
+torch==2.6.0
+numpy==2.2.5
+langchain==0.3.24
+langchain-community==0.3.24
+langchain-huggingface==0.2.0
+langchain-ollama==0.3.3
+hf-xet==1.1.2
+bitsandbytes==0.45.5
+accelerate==1.7.0
+ragas==0.2.15
+langchain-nvidia-ai-endpoints==0.3.10
+matplotlib==3.10.3
+seaborn==0.13.2

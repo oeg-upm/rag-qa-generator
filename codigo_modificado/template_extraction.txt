@@ -1,0 +1,51 @@
+# synthesizer/templates/template_extraction.py
+class ExtractionTemplate:
+
+    @staticmethod
+    def extract_prompt_structure_from_inputs(inputs: list[str]):
+        return f"""
+            Eres un ingeniero de prompts encargado de invertir el prompting original que podría haber generado las siguientes entradas.
+            Cada entrada es un mensaje que un usuario podría enviar a un sistema de IA.
+            
+            Tu trabajo es inferir la estructura del prompt original analizando patrones en estas entradas.
+            
+            Específicamente, extrae lo siguiente:
+            
+            escenario: Describe el tipo de persona o usuario que habría enviado estas entradas, y el contexto o propósito de hacerlo.
+            
+            tarea: ¿Qué se esperaba que hiciera el sistema de IA en respuesta a estas entradas?
+            
+            formato_de_entrada: Describe el estilo, tono o estructura de las entradas — cómo suelen redactarse.
+            
+            Debes devolver tu respuesta estrictamente en el siguiente formato JSON:
+
+            ```json
+            {{
+                "scenario": "<tu respuesta aquí>",
+                "task": "<tu respuesta aquí>",
+                "input_format": "<tu respuesta aquí>"
+            }}
+            ```
+
+            **
+            IMPORTANTE: No uses ningún conocimiento previo. Solo confía en lo observable en las entradas mismas.   
+
+            Entradas de ejemplo:[
+                "¿Cuántos usuarios se registraron la semana pasada?",
+                "Muéstrame el ingreso total de marzo.",
+                "¿Qué productos tuvieron las mayores ventas ayer?"
+            ]
+            
+            Salida de ejemplo:
+
+            Example output:
+            {{
+                "scenario": "Usuarios no técnicos intentando consultar una base de datos usando inglés sencillo.",
+                "task": "Responder consultas de texto a SQL consultando una base de datos y devolviendo los resultados a los usuarios.",
+                "input_format": "Preguntas en inglés que solicitan datos de una base de datos."
+            }}
+
+            Aquí están las entradas para analizar:
+
+            {inputs}
+     """

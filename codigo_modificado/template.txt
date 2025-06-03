@@ -1,0 +1,1531 @@
+# synthesizer/templates/template.py
+from typing import Optional
+
+
+class SynthesizerTemplate:
+    '''
+    @staticmethod
+    def generate_text2sql_inputs(context, max_goldens_per_context):
+        prompt = f"""Based on the given context, which is a SQL table schema, please generate a list of JSON objects with `input` keys.
+        The `input` can either be a question or a statement that can be addressed by the given schema.
+
+        **
+        IMPORTANT: Please make sure to only return in JSON format, with the 'data' key as a list of JSON objects.
+        You MUST TRY to generate {max_goldens_per_context} data points, unless the `input` is getting repetitive.
+
+        Example context: [
+            "Table: Customers",
+            "Column: CustomerID, Type: INT, Description: Unique identifier for each customer",
+            "Column: FirstName, Type: VARCHAR, Description: First name of the customer",
+            "Column: LastName, Type: VARCHAR, Description: Last name of the customer",
+            "Column: Email, Type: VARCHAR, Description: Email address of the customer",
+            "Column: PhoneNumber, Type: VARCHAR, Description: Contact number of the customer",
+            "Column: City, Type: VARCHAR, Description: City where the customer resides"
+        ]
+        Example max goldens per context: 2
+        Example JSON:
+        {{
+            "data": [
+                {{
+                    "input": "Show me all the customers who live in New York.",
+                }},
+                {{
+                    "input": "List the first and last names of all customers.",
+                }}
+            ]  
+        }}
+
+        You should NOT incorporate any prior knowledge you have and take each context at face value.
+        You MUST include at least one statement as the input.
+        `input` MUST be a STRING.
+        You MUST TRY to generate {max_goldens_per_context} data points, unless the generated `input` is getting repetitive.
+        **
+
+        Max Goldens Per Context:
+        {max_goldens_per_context}
+
+        Context:
+        {context}
+
+        JSON:
+        """
+        return prompt
+
+    '''
+    @staticmethod
+    def generate_text2sql_inputs(context, max_goldens_per_context):
+        prompt = f"""Según el contexto proporcionado, que representa el esquema de una tabla SQL, genera una lista de objetos JSON con la clave `input`.
+        El valor de `input` puede ser una pregunta o una afirmación que el esquema dado pueda responder.
+        
+        **
+        IMPORTANTE: Asegúrate de devolver SOLO en formato JSON, con la clave 'data' como una lista de objetos JSON.
+        DEBES INTENTAR generar {max_goldens_per_context} elementos de datos, a menos que los `input` empiecen a repetirse.
+        
+        Ejemplo de contexto: [
+            "Table: Customers",
+            "Column: CustomerID, Type: INT, Description: Identificador único de cada cliente",
+            "Column: FirstName, Type: VARCHAR, Description: Nombre del cliente",
+            "Column: LastName, Type: VARCHAR, Description: Apellido del cliente",
+            "Column: Email, Type: VARCHAR, Description: Dirección de correo electrónico del cliente",
+            "Column: PhoneNumber, Type: VARCHAR, Description: Número de contacto del cliente",
+            "Column: City, Type: VARCHAR, Description: Ciudad de residencia del cliente"
+        ]
+        Ejemplo de max goldens por contexto: 2
+        Ejemplo de JSON:
+        {{
+            "data": [
+                {{
+                    "input": "Muestra todos los clientes que viven en Nueva York."
+                }},
+                {{
+                    "input": "Enumera nombres y apellidos de todos los clientes."
+                }}
+            ]
+        }}
+        
+        NO debes incorporar ningún conocimiento previo; toma cada contexto tal cual.
+        DEBES incluir al menos una afirmación como `input`.
+        `input` DEBE ser un STRING.
+        DEBES INTENTAR generar {max_goldens_per_context} elementos de datos, a menos que los `input` empiecen a repetirse.
+        **
+        
+        Max Goldens Per Context:
+        {max_goldens_per_context}
+        
+        Contexto:
+        {context}
+        
+        JSON:
+        """
+        return prompt
+    '''
+    @staticmethod
+    def generate_text2sql_expected_output(input, context):
+        return f"""Given the input, which may be a question or a statement addressable by the schema provided in the context,
+        generate a JSON object with a key 'sql'. This key should contain the corresponding SQL statement that accurately and efficiently responds to the input.
+
+        **
+        IMPORTANT: The output must be in JSON format, with the 'sql' key only.
+
+        Example Context: [
+            "Table: Customers",
+            "Column: CustomerID, Type: INT, Description: Unique identifier for each customer",
+            "Column: FirstName, Type: VARCHAR, Description: First name of the customer",
+            "Column: LastName, Type: VARCHAR, Description: Last name of the customer",
+            "Column: Email, Type: VARCHAR, Description: Email address of the customer",
+            "Column: PhoneNumber, Type: VARCHAR, Description: Contact number of the customer",
+            "Column: City, Type: VARCHAR, Description: City where the customer resides"
+        ]
+        Example Input: "Show me all the customers who live in New York.",
+        Example JSON: {{
+            "sql": "SELECT * FROM Customers WHERE City = 'New York';"
+        }}
+
+        Context:
+        {context}
+
+        Input:
+        {input}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def generate_text2sql_expected_output(input, context):
+        return f"""Dado el `input`, que puede ser una pregunta o afirmación atendible según el esquema proporcionado en el contexto,
+        genera un objeto JSON con la clave 'sql'. Esta clave debe contener la instrucción SQL que responda de forma precisa y eficiente al `input`.
+        
+        **
+        IMPORTANTE: La salida debe estar en formato JSON, solo con la clave 'sql'.
+        
+        Ejemplo de contexto: [
+            "Table: Customers",
+            "Column: CustomerID, Type: INT, Description: Identificador único de cada cliente",
+            "Column: FirstName, Type: VARCHAR, Description: Nombre del cliente",
+            "Column: LastName, Type: VARCHAR, Description: Apellido del cliente",
+            "Column: Email, Type: VARCHAR, Description: Dirección de correo electrónico del cliente",
+            "Column: PhoneNumber, Type: VARCHAR, Description: Número de contacto del cliente",
+            "Column: City, Type: VARCHAR, Description: Ciudad de residencia del cliente"
+        ]
+        Ejemplo de entrada: "Muestra todos los clientes que viven en Nueva York."
+        Ejemplo de JSON:
+        {{
+            "sql": "SELECT * FROM Customers WHERE City = 'New York';"
+        }}
+        
+        Contexto:
+        {context}
+        
+        Entrada:
+        {input}
+        
+        JSON:
+        """
+
+    '''
+    def generate_synthetic_expected_output(
+        input: str, context: str, expected_output_format: Optional[str]
+    ):
+        important_section = (
+            f"IMPORTANT: Please ensure that the generated response strictly adheres to the following format: {expected_output_format}, and make sure it is concise and straight to the point, using supporting information in context."
+            if expected_output_format
+            else "IMPORTANT: Please make sure to generate a response that is concise and straight to the point, and uses supporting information in context."
+        )
+
+        return f"""Given the input, which may or may not be a question, generate a response using information presented in context.
+
+        **
+        {important_section}
+        **
+
+        Context:
+        {context}
+
+        Input:
+        {input}
+
+        Generated Response:
+        """
+
+    '''
+    
+    def generate_synthetic_expected_output(
+        input: str, context: str, expected_output_format: Optional[str]
+    ):
+        # Construye la sección de instrucción importante según si se provee un formato esperado
+        important_section = (
+            f"IMPORTANTE: Asegúrate de que la respuesta generada cumpla estrictamente con el siguiente formato: {expected_output_format}, y que sea concisa y directa, usando la información de apoyo del contexto."
+            if expected_output_format
+            else "IMPORTANTE: Asegúrate de generar una respuesta concisa y directa, usando la información de apoyo del contexto."
+        )
+
+        # Retorna el prompt traducido a español
+        return f"""Dado el `input`, que puede ser una pregunta o no, genera una respuesta usando la información presentada en el contexto.
+
+        **
+        {important_section}
+        **
+
+        Contexto:
+        {context}
+
+        Entrada:
+        {input}
+
+        Respuesta generada:
+        """
+
+    '''
+    @staticmethod
+    def generate_synthetic_inputs(
+        context: str,
+        max_goldens_per_context: str,
+        scenario: Optional[str],
+        task: Optional[str],
+        input_format: Optional[str],
+    ):
+        input_format_section = (
+            f"`input` MUST strictly adhere to the following format: {input_format}."
+            if input_format
+            else "`input` MUST be a STRING."
+        )
+
+        scenario_section = (
+            f"`input`s MUST be relevant to this specific scenario: ```{scenario}``` (The scenario describes the circumstances under which the inputs are generated and the user’s intent in eliciting a response)."
+            if scenario
+            else ""
+        )
+
+        task_section = (
+            f"`input`s MUST be framed in a way that evokes a response aligned with the following task: {task} (The task represents the goal or function the entity is expected to achieve when responding)."
+            if task
+            else ""
+        )
+        return f"""I want you act as a copywriter. Based on the given context, which is list of strings, please generate a list of JSON objects with a `input` key.
+        The `input` can either be a question or a statement that can be addressed by the given context.
+
+        **
+        IMPORTANT: Please make sure to only return in JSON format, with the 'data' key as a list of JSON objects.
+        You MUST TRY to generate {max_goldens_per_context} data points, unless the `input` is getting repetitive.
+
+        Example context: ["Einstein won the Nobel Prize for his discovery of penicillin.", "Einstein won the Nobel Prize in 1968."]
+        Example max goldens per context: 2
+        Example JSON:
+        {{
+            "data": [
+                {{
+                    "input": "What was Einstein known for?"
+                }},
+                {{
+                    "input": "Einstein was a smart guy huh"
+                }}
+            ]  
+        }}
+
+
+        You should NOT incorporate any prior knowledge you have and take each context at face value.
+        You MUST include at least one statement as the input.
+        {input_format_section}
+        {scenario_section}
+        {task_section}
+        You MUST TRY to generate {max_goldens_per_context} data points, unless the generated `input` is getting repetitive.
+        **
+
+        Max Goldens Per Context:
+        {max_goldens_per_context}
+
+        Context:
+        {context}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def generate_synthetic_inputs(
+        context: str,
+        max_goldens_per_context: str,
+        scenario: Optional[str],
+        task: Optional[str],
+        input_format: Optional[str],
+    ) -> str:
+        """
+        Genera la instrucción completa para un “copywriter” de inputs sintéticos, basándose en el contexto proporcionado.
+
+        Args:
+            context: Descripción del contexto (normalmente una lista de cadenas representada como string).
+            max_goldens_per_context: Número máximo de ejemplos (“goldens”) a generar por contexto.
+            scenario: Escenario al que deben ser relevantes los inputs (opcional).
+            task: Tarea que debe guiar la formulación de los inputs (opcional).
+            input_format: Formato que los inputs deben respetar (opcional).
+
+        Returns:
+            Una cadena multilínea con la instrucción en español para la generación de los inputs.
+        """
+        # Sección que define el formato de entrada. Si se especifica input_format, se utiliza; 
+        # en caso contrario, se exige una cadena genérica.
+        input_format_section = (
+            f"`input` DEBE adherirse estrictamente al siguiente formato: {input_format}."
+            if input_format
+            else "`input` DEBE ser un STRING."
+        )
+
+        # Sección que describe el escenario. Solo se incluye si se proporciona 'scenario'.
+        scenario_section = (
+            f"`input`s DEBEN ser relevantes para este escenario específico: ```{scenario}``` (El escenario describe las circunstancias bajo las cuales se generan las entradas y la intención del usuario al solicitarlas)."
+            if scenario
+            else ""
+        )
+
+        # Sección que enmarca la tarea. Solo se incluye si se especifica 'task'.
+        task_section = (
+            f"`input`s DEBEN formularse de manera que evoquen una respuesta alineada con la siguiente tarea: "
+            f"{task} (La tarea representa el objetivo o función que se espera que la entidad cumpla al responder)."
+            if task
+            else ""
+        )
+
+        # Ensamblaje final de la instrucción en un f-string multilínea
+        return f"""Quiero que actúes como copywriter. Basándote en el contexto dado, que es una lista de cadenas de texto, genera una lista de objetos JSON con la clave `input`.
+        El `input` puede ser una pregunta o una afirmación que pueda abordarse con el contexto proporcionado.
+        
+        **
+        IMPORTANTE: Asegúrate de devolver únicamente en formato JSON, con la clave 'data' como lista de objetos JSON.
+        DEBES INTENTAR generar {max_goldens_per_context} puntos de datos, a menos que los `input`s se vuelvan repetitivos.
+        
+        Ejemplo de contexto: ["Einstein ganó el Premio Nobel por su descubrimiento de la penicilina.", "Einstein ganó el Premio Nobel en 1968."]
+        Ejemplo de max_goldens_per_context: 2
+        Ejemplo de JSON:
+        {{
+          "data": [
+            {{"input": "¿Por qué se conoce a Einstein?"}},
+            {{"input": "Einstein era muy inteligente, ¿verdad?"}}
+          ]  
+        }}
+        
+        No debes incorporar ningún conocimiento previo y debes tomar cada contexto tal cual.
+        DEBES incluir al menos una afirmación como input.
+        {input_format_section}
+        {scenario_section}
+        {task_section}
+        DEBES INTENTAR generar {max_goldens_per_context} puntos de datos, a menos que los `input`s generados sean repetitivos.
+        **
+        
+        Max Goldens Per Context:
+        {max_goldens_per_context}
+        
+        Context:
+        {context}
+        
+        JSON:
+        """
+
+    '''
+
+    @staticmethod
+    def rewrite_evolved_input(
+        evolved_input: str,
+        scenario: Optional[str] = None,
+        task: Optional[str] = None,
+        input_format: Optional[str] = None,
+    ):
+        scenario_section = f'Scenario: "{scenario}"' if scenario else ""
+
+        task_section = f'Task: "{task}"' if task else ""
+
+        input_format_section = (
+            f'Input Format: "{input_format}"' if input_format else ""
+        )
+
+        return f"""Given the evolved input, which may be a question or a statement, generate a JSON object with a key 'input'. This key should contain a statement or question that fits any provided scenario, aligns with the task's purpose, and matches the required input format (if specified).
+
+        **
+        IMPORTANT: Try to change the evolved input as little as possible. However, if the evolved input does not align with the provided scenario, task, or input format, it must ultimately be adjusted to fit these requirements. The output must be in JSON format, with the 'input' key only. If necessary, the evolved input should be rewritten to ensure it conforms to the scenario, task, and input format.
+
+        Example Evolved Input: "Is it okay to joke about someone losing their job in front of their coworkers if I'm just trying to lighten the mood?"
+        {f'Example Scenario: "{scenario}"' if scenario else ""}
+        {f'Example Task: "{task}"' if task else ""}
+        {f'Example Input Format: "{input_format}"' if input_format else ""}
+        Example JSON: {{
+            "input": "How can I joke about someone losing their job without making the situation worse? Is it possible to use humor here without hurting anyone's feelings?"
+        }}
+
+        Evolved Input:
+        {evolved_input}
+        
+        {scenario_section}
+        {task_section}
+        {input_format_section}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def rewrite_evolved_input(
+        evolved_input: str,
+        scenario: Optional[str] = None,
+        task: Optional[str] = None,
+        input_format: Optional[str] = None,
+    ) -> str:
+        """
+        Genera una instrucción en español para reescribir un `evolved_input` en formato JSON,
+        ajustándolo lo mínimo posible para que sea coherente con un escenario, tarea y formato de entrada opcionales.
+
+        Args:
+            evolved_input: Cadena que representa la entrada evoluida (pregunta o afirmación).
+            scenario: Escenario al que debe ajustarse el input (opcional).
+            task: Tarea que debe guiar la formulación del input (opcional).
+            input_format: Formato que debe respetar el input final (opcional).
+
+        Returns:
+            Una cadena multilínea con la instrucción en español para generar el JSON de salida.
+        """
+        # Sección de escenario: solo se incluye si 'scenario' está definido
+        scenario_section = f'Scenario: "{scenario}"' if scenario else ""
+
+        # Sección de tarea: solo se incluye si 'task' está definido
+        task_section = f'Task: "{task}"' if task else ""
+
+        # Sección de formato de entrada: solo se incluye si 'input_format' está definido
+        input_format_section = (
+            f'Input Format: "{input_format}"' if input_format else ""
+        )
+
+        # Construcción del template final con f-string multilínea en español
+        return f"""Dado el `evolved_input`, que puede ser una pregunta o una afirmación, genera un objeto JSON con la clave `input`. Esta clave debe contener una pregunta o afirmación que encaje con el escenario proporcionado, se alinee con la tarea y respete el formato de entrada requerido (si se especificó).
+
+        **
+        IMPORTANTE: Intenta modificar el `evolved_input` lo menos posible. Sin embargo, si el `evolved_input` no coincide con el escenario, la tarea o el formato de entrada, debe ajustarse para cumplir con dichos requisitos. La salida debe estar **solo** en formato JSON, con la única clave `input`. Si es necesario, reescribe el `evolved_input` para que cumpla con el escenario, la tarea y el formato.
+        
+        Ejemplo de Evolved Input: "¿Está bien bromear sobre la pérdida de trabajo de alguien delante de sus compañeros de trabajo si sólo intento aligerar el ambiente?"
+        {f'Ejemplo de Scenario: "{scenario}"' if scenario else ""}
+        {f'Ejemplo de Task: "{task}"' if task else ""}
+        {f'Ejemplo de Input Format: "{input_format}"' if input_format else ""}
+        Ejemplo de JSON: {{
+            "input": "¿Cómo puedo bromear sobre la pérdida de trabajo de alguien sin empeorar la situación? ¿Es posible utilizar el humor en este caso sin herir los sentimientos de nadie?"
+        }}
+        
+        Evolved Input:
+        {evolved_input}
+        
+        {scenario_section}
+        {task_section}
+        {input_format_section}
+        
+        JSON:
+        """
+
+    '''
+    @staticmethod
+    def rewrite_synthetic_inputs(context, original_query, feedback):
+        return f"""I want you to act as a query rewriter. Based on the provided context, original query, and feedback, generate a rewritten query that improves its clarity and answerability based on the feedback provided.
+
+        **
+        IMPORTANT: Please make sure to only return in JSON format, with the 'rewritten_input' key.
+
+        Example context: "The Golden Gate Bridge, located in San Francisco, was completed in 1937 and is known for its Art Deco design. It connects the city of San Francisco to Marin County and spans the Golden Gate Strait."
+        Example query: "When was the bridge completed?"
+        Example feedback: "The question asks about the completion of 'the bridge' but does not specify which bridge it refers to. There are many famous bridges, and without specifying the name, the question is too vague. To improve clarity, include the bridge's name."
+        Example JSON:
+        {{
+            "rewritten_input": "When was the Golden Gate Bridge completed?"
+        }}
+
+        Example context: "The paper 'Advancements in Quantum Computing' by Dr. Alice Thompson discusses breakthroughs in quantum algorithms and was published in 2022. It explores the potential applications of quantum computing in cryptography and drug discovery."
+        Example query: "What applications of quantum computing are discussed in the paper?"
+        Example feedback: "The query is asking about applications of quantum computing but doesn't specify which paper is being referenced. Since many papers may discuss quantum computing, it would help to specify the title or author of the paper to improve clarity."
+        Example JSON:
+        {{
+            "rewritten_input": "What applications of quantum computing are discussed in the paper 'Advancements in Quantum Computing' by Dr. Alice Thompson?"
+        }}
+
+        You should NOT incorporate any prior knowledge and should base the rewritten query only on the context and feedback provided.
+        The `rewritten_input` MUST be a STRING.
+        **
+
+        Context:
+        {context}
+
+        Query:
+        {original_query}
+
+        Feedback:
+        {feedback}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def rewrite_synthetic_inputs(context: str, original_query: str, feedback: str) -> str:
+        """
+        Genera una instrucción en español para reescribir una consulta basada en contexto, 
+        consulta original y feedback, devolviendo solo un JSON con la clave 'rewritten_input'.
+
+        Args:
+            context: Texto que describe el contexto en el que se enmarca la consulta.
+            original_query: La consulta original que debe mejorarse.
+            feedback: Comentarios sobre cómo debe ajustarse la consulta para ganar claridad.
+        
+        Returns:
+            Una cadena multilínea que contiene la instrucción en español con un template JSON.
+        """
+        return f"""Quiero que actúes como reescritor de consultas. Basándote en el contexto proporcionado, 
+la consulta original y el feedback, genera una consulta reescrita que mejore su claridad y la posibilidad 
+de obtener respuesta según el feedback proporcionado.
+
+        **
+        IMPORTANTE: Asegúrate de devolver únicamente en formato JSON, con la clave 'rewritten_input'.
+        
+        Ejemplo de contexto: "El Puente Golden Gate, ubicado en San Francisco, se completó en 1937 y es conocido 
+        por su diseño Art Deco. Conecta la ciudad de San Francisco con el condado de Marin y atraviesa el estrecho Golden Gate."
+        Ejemplo de consulta: "¿Cuándo se completó el puente?"
+        Ejemplo de feedback: "La pregunta menciona 'el puente' pero no especifica a qué puente se refiere. Hay muchos 
+        puentes famosos y sin nombrar cuál, la pregunta es demasiado ambigua. Para mejorar la claridad, incluye el nombre del puente."
+        Ejemplo de JSON:
+        {{
+            "rewritten_input": "¿Cuándo se completó el Puente Golden Gate?"
+        }}
+        
+        Ejemplo de contexto: "El artículo 'Avances en Computación Cuántica' de la Dra. Alice Thompson trata sobre avances 
+        en algoritmos cuánticos y se publicó en 2022. Explora las posibles aplicaciones de la computación cuántica en criptografía 
+        y descubrimiento de fármacos."
+        Ejemplo de consulta: "¿Qué aplicaciones de la computación cuántica se discuten en el artículo?"
+        Ejemplo de feedback: "La consulta pregunta por aplicaciones de la computación cuántica pero no especifica a qué artículo 
+        se refiere. Como muchos artículos pueden discutirlo, ayudaría especificar el título o el autor del artículo para mejorar la claridad."
+        Ejemplo de JSON:
+        {{
+            "rewritten_input": "¿Qué aplicaciones de la computación cuántica se discuten en el artículo 'Avances en Computación Cuántica' 
+            de la Dra. Alice Thompson?"
+        }}
+        
+        No debes incorporar ningún conocimiento previo y debes basar la consulta reescrita solo en el contexto y el feedback proporcionados.
+        El 'rewritten_input' DEBE ser una CADENA.
+        **
+        
+        Contexto:
+        {context}
+        
+        Consulta:
+        {original_query}
+        
+        Feedback:
+        {feedback}
+        
+        JSON:
+        """
+
+######################################################################################################
+##### Filter #########################################################################################
+######################################################################################################
+
+
+class FilterTemplate:
+
+    '''
+    @staticmethod
+    def evaluate_synthetic_inputs(query):
+        return f"""Evaluate the provided synthetic query (which may be a question, task, or instruction) for clarity and answerability, assuming sufficient domain knowledge. Use the following criteria to guide your assessment:
+
+        1. **Self-Containment**: Can the query be understood and completed without needing additional context or external references not provided within the query itself? It should be self-sufficient, meaning it doesn't depend on specific documents, tables, or prior knowledge not included in the query.
+        2. **Clear Objective**: Does the query clearly convey its intent? It should specify what information, action, or response is being requested, allowing for a direct and appropriate answer or execution without ambiguity.
+
+        Based on these criteria, assign a score between 0 and 1, where:
+        - "1" means the query is clear, self-contained, and answerable.
+        - "0" means the query is vague, relies on external references, or is unclear in its intent.
+        - Scores between 0 and 1 indicate partial clarity or answerability, where the query meets some but not all of the criteria.
+
+        **
+        IMPORTANT: Please make sure to only return in JSON format, with the 'feedback' and 'score' keys.
+
+        Example query: "What technological innovations have changed communication over the last 20 years?"
+        Example JSON:
+        {{
+            "feedback": "The query is somewhat vague as it asks about 'technological innovations' without specifying particular areas of communication (e.g., social media, messaging apps). It could be improved by narrowing the focus to a specific type of innovation or timeframe.",
+            "score": 0.5
+        }}
+
+        Example query: "Explain the impact of renewable energy policies in Germany on local economies in 2021."
+        Example JSON:
+        {{
+            "feedback": "This query clearly specifies the focus (renewable energy policies), the region (Germany), and the timeframe (2021). It is self-contained and answerable without needing additional context, making it clear and effective.",
+            "score": 1.0
+        }}
+
+        Example query: "What are the main criticisms of the current education system in the United States?"
+        Example JSON:
+        {{
+            "feedback": "The question is broad and lacks specificity, as 'main criticisms' could refer to various aspects (e.g., funding, curriculum, access). To improve clarity, it could specify which aspect of the education system is being critiqued.",
+            "score": 0.4
+        }}
+
+        Example query: "Discuss the role of AI in healthcare, particularly in diagnostics, as noted in the last report."
+        Example JSON:
+        {{
+            "feedback": "This question refers to 'the last report' without providing context or details, making it unclear and dependent on external information. It would be clearer if it provided some background on the report or defined what aspects of AI in diagnostics to address.",
+            "score": 0.3
+        }}
+                
+        The `feedback` MUST be a STRING and `score` must be a float from 0 to 1.
+        **
+                
+        Query:
+        {query}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def evaluate_synthetic_inputs(query: str) -> str:
+        """
+        Genera una instrucción en español para evaluar una consulta sintética
+        según criterios de claridad y capacidad de respuesta, devolviendo solo JSON.
+        """
+        return f"""Evalúa la consulta sintética proporcionada (que puede ser una pregunta, tarea o instrucción)
+para determinar su claridad y capacidad de respuesta, asumiendo conocimientos de dominio suficientes.
+        Utiliza los siguientes criterios para guiar tu evaluación:
+
+        1. **Autocontenida**: ¿Puede la consulta entenderse y completarse sin necesitar contexto adicional o referencias externas no incluidas en la propia consulta? Debe ser autosuficiente, es decir, no depender de documentos, tablas o conocimientos previos no proporcionados.
+        2. **Objetivo Claro**: ¿La consulta transmite claramente su intención? Debe especificar qué información, acción o respuesta se solicita, permitiendo una respuesta directa y adecuada sin ambigüedad.
+        
+        Según estos criterios, asigna una puntuación entre 0 y 1, donde:
+        - "1" significa que la consulta es clara, autocontenida y respondible.
+        - "0" significa que la consulta es vaga, depende de referencias externas o no es clara en su intención.
+        - Los valores entre 0 y 1 indican claridad o capacidad de respuesta parciales,
+          donde la consulta cumple algunos pero no todos los criterios.
+        
+        **
+        IMPORTANTE: Asegúrate de devolver únicamente en formato JSON, con las claves 'feedback' y 'score'.
+        
+        Ejemplo de consulta: "¿Qué innovaciones tecnológicas han cambiado la comunicación en los últimos 20 años?"
+        Ejemplo de JSON:
+        {{
+            "feedback": "La consulta es algo vaga porque pide 'innovaciones tecnológicas' sin especificar áreas concretas de comunicación (por ejemplo, redes sociales, aplicaciones de mensajería). Podría mejorarse delimitando el enfoque a un tipo específico de innovación o periodo de tiempo.",
+            "score": 0.5
+        }}
+        
+        Ejemplo de consulta: "Explicar el impacto de las políticas de energías renovables en Alemania sobre las economías locales en 2021."
+        Ejemplo de JSON:
+        {{
+            "feedback": "Esta consulta especifica claramente el enfoque (políticas de energías renovables), la región (Alemania) y el periodo temporal (2021). Es autocontenida y respondible sin necesitar contexto adicional, lo que la hace clara y efectiva.",
+            "score": 1.0
+        }}
+        
+        Ejemplo de consulta: "¿Cuáles son las principales críticas al actual sistema educativo de Estados Unidos?"
+        Ejemplo de JSON:
+        {{
+            "feedback": "La pregunta es amplia y carece de especificidad, ya que 'principales críticas' podría referirse a diversos aspectos (por ejemplo, financiación, plan de estudios, acceso). Para mejorar la claridad, podría especificar qué aspecto del sistema educativo se está cuestionando.",
+            "score": 0.4
+        }}
+        
+        Ejemplo de consulta: "Discutir el papel de la IA en la asistencia sanitaria, en particular en el diagnóstico, como se señaló en el último informe."
+        Ejemplo de JSON:
+        {{
+            "feedback": "Esta consulta hace referencia a 'el último informe' sin proporcionar contexto ni detalles, lo que la hace poco clara y dependiente de información externa. Sería más clara si se diera información previa sobre el informe o se definieran los aspectos de la IA en diagnóstico a tratar.",
+            "score": 0.3
+        }}
+        
+        La 'feedback' DEBE ser un STRING y el 'score' debe ser un flotante de 0 a 1.
+        **
+        
+        Consulta:
+        {query}
+        
+        JSON:
+        """
+
+    '''
+    @staticmethod
+    def evaluate_context(context):
+        return f"""Given a context, complete the following task and return the result in VALID JSON format: Evaluate the supplied context and assign a numerical score between 0 (Low) and 1 (High) for each of the following criteria in your JSON response:
+
+        - **clarity**: Assess how clear and comprehensible the information is. A score of 1 indicates that the context is straightforward and easily understandable, while a score of 0 reflects vagueness or confusion in the information presented.
+        - **depth**: Evaluate the extent of detailed analysis and the presence of original insights within the context. A high score (1) suggests a thorough and thought-provoking examination, while a low score (0) indicates a shallow overview of the subject.
+        - **structure**: Review how well the content is organized and whether it follows a logical progression. A score of 1 is given to contexts that are coherently structured and flow well, whereas a score of 0 is for those that lack organization or clarity in their progression.
+        - **relevance**: Analyze the importance of the content in relation to the main topic, awarding a score of 1 for contexts that stay focused on the subject without unnecessary diversions, and a score of 0 for those that include unrelated or irrelevant information.
+
+        **
+        IMPORTANT: Please make sure to only return in JSON format, with the 'clarity', 'depth', 'structure', and 'relevance' keys.
+
+        Example context: "Artificial intelligence is rapidly changing various sectors, from healthcare to finance, by enhancing efficiency and enabling better decision-making."
+        Example JSON:
+        {{
+            "clarity": 1,
+            "depth": 0.8,
+            "structure": 0.9,
+            "relevance": 1
+        }}
+
+        Example context: "Cats are great pets. They like to sleep and play."
+        Example JSON:
+        {{
+            "clarity": 0.5,
+            "depth": 0.3,
+            "structure": 0.4,
+            "relevance": 0.5
+        }}
+
+        Example context: "Artificial intelligence is rapidly changing various sectors, from healthcare to finance, by enhancing efficiency and enabling better decision-making."
+        Example JSON:
+        {{
+            "clarity": 1,
+            "depth": 0.9,
+            "structure": 1,
+            "relevance": 1
+        }}
+
+        Example context: "Artificial intelligence is rapidly changing various sectors, from healthcare to finance, by enhancing efficiency and enabling better decision-making."
+        Example JSON:
+        {{
+            "clarity": 0.4,
+            "depth": 0,
+            "structure": 0.3,
+            "relevance": 0.2
+        }}
+
+        Example context: "The impact of globalization on local cultures is complex, with both positive and negative effects. It can lead to cultural exchange but also to the erosion of local traditions."
+        Example JSON:
+        {{
+            "clarity": 0.9,
+            "depth": 0.8,
+            "structure": 0.9,
+            "relevance": 1
+        }}
+
+
+        `clarity`, `depth`, `structure`, and `relevance` MUST be floats from 0 to 1.
+        Make sure your JSON response is valid and properly formatted.
+        **
+
+        context:
+        {context}
+
+        JSON:
+        """
+    '''
+    @staticmethod
+    def evaluate_context(context: str) -> str:
+        """
+        Genera una instrucción en español para evaluar un contexto dado
+        y devolver un JSON con puntuaciones para clarity, depth, structure y relevance.
+        """
+        return f"""Dado un contexto, completa la siguiente tarea y devuelve el resultado en formato JSON VÁLIDO: Evalúa el contexto proporcionado y asigna una puntuación numérica entre 0 (baja) y 1 (alta) para cada uno de los siguientes criterios en tu respuesta JSON:
+        
+        - **clarity**: Evalúa cuán clara y comprensible es la información. Una puntuación de 1 indica que el contexto es directo y fácil de entender, mientras que 0 refleja vaguedad o confusión.
+        - **depth**: Valora el grado de análisis detallado y la presencia de ideas originales. Una puntuación de 1 sugiere un examen exhaustivo, mientras que 0 indica una visión superficial.
+        - **structure**: Revisa la organización y progresión lógica del contenido. Una puntuación de 1 se otorga a contextos \
+        coherentes y con buen flujo, mientras que 0 es para aquellos que carecen de organización.
+        - **relevance**: Analiza la importancia del contenido respecto al tema principal, otorgando 1 a contextos enfocados sin desviaciones, y 0 a los que incluyan información irrelevante.
+        
+        **
+        IMPORTANTE: Asegúrate de devolver únicamente en formato JSON, con las claves 'clarity', 'depth', 'structure' y 'relevance'.
+        
+        Ejemplo de contexto: "La inteligencia artificial está cambiando rápidamente diversos sectores, desde la atención sanitaria hasta las finanzas, mejorando la eficiencia y permitiendo una mejor toma de decisiones."
+        Ejemplo de JSON:
+        {{
+            "clarity": 1,
+            "depth": 0.8,
+            "structure": 0.9,
+            "relevance": 1
+        }}
+        
+        Ejemplo de contexto: "Los gatos son excelentes mascotas. Les gusta dormir y jugar."
+        Ejemplo de JSON:
+        {{
+            "clarity": 0.5,
+            "depth": 0.3,
+            "structure": 0.4,
+            "relevance": 0.5
+        }}
+        
+        Ejemplo de contexto: "La inteligencia artificial está cambiando rápidamente diversos sectores, desde la atención sanitaria hasta las finanzas, mejorando la eficiencia y permitiendo una mejor toma de decisiones."
+        Ejemplo de JSON:
+        {{
+            "clarity": 1,
+            "depth": 0.9,
+            "structure": 1,
+            "relevance": 1
+        }}
+        
+        Ejemplo de contexto: "La inteligencia artificial está cambiando rápidamente diversos sectores, desde la atención sanitaria hasta las finanzas, mejorando la eficiencia y permitiendo una mejor toma de decisiones."
+        Ejemplo de JSON:
+        {{
+            "clarity": 0.4,
+            "depth": 0,
+            "structure": 0.3,
+            "relevance": 0.2
+        }}
+        
+        Ejemplo de contexto: "El impacto de la globalización en las culturas locales es complejo, con efectos tanto positivos como negativos. Puede conducir al intercambio cultural pero también a la erosión de las tradiciones locales."
+        Ejemplo de JSON:
+        {{
+            "clarity": 0.9,
+            "depth": 0.8,
+            "structure": 0.9,
+            "relevance": 1
+        }}
+        
+        `clarity`, `depth`, `structure` y `relevance` DEBEN ser valores flotantes entre 0 y 1.
+        Asegúrate de que tu respuesta JSON sea válida y esté correctamente formateada.
+        **
+        
+        Contexto:
+        {context}
+        
+        JSON:
+        """
+
+######################################################################################################
+##### Approach similar to https://github.com/nlpxucan/WizardLM/blob/main/Evol_Instruct/depth.py ######
+######################################################################################################
+
+
+class EvolutionTemplate:
+
+    '''
+    base_instruction = """I want you to act as an input rewriter.
+    Your object is the rewrite a given `input` and must be factually correct according to the supporting information in `Context`.
+    You MUST complicate the given `Input` using the following method:"""
+    '''
+    base_instruction = """Quiero que actúes como reescritor de entradas.
+    Tu objetivo es reescribir una `input` dada y debe ser fácticamente correcto según la información de apoyo en `Context`.
+    DEBES complicar la `Input` dada usando el siguiente método:"""
+
+    '''
+    @staticmethod
+    def multi_context_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. `Input` should be rewritten to require readers to use information from all elements of `Context`. 
+            2. `Rewritten Input` must be fully answerable from information in `Context`. 
+            3. `Rewritten Input` should be concise and understandable by humans.
+            4. `Rewritten Input` should not contain phrases like  'based on the provided context' or 'according to the context'.
+            5. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+            
+            **
+            EXAMPLES
+
+            Example context:
+            ["Vaccines introduce a weakened or dead form of the pathogen to the human body.", "This exposure helps the immune system learn to recognize and fight the pathogen in the future."]
+            Example input:
+            How do vaccines work?
+            Example rewritten input:
+            How does the introduction of a modified pathogen prepare the immune system for future encounters?
+
+            --------------------------
+            
+            Example context:
+            ["Plants perform photosynthesis, using sunlight to convert carbon dioxide and water into glucose and oxygen.", "Chlorophyll in plant leaves absorbs sunlight, initiating the photosynthesis process.", "Oxygen is a by-product of the photosynthesis process and is released into the atmosphere."]
+            Example input:
+            Explain how plants produce oxygen.
+            Example rewritten input: 
+            Considering chlorophyll's role in sunlight absorption and photosynthesis, how is oxygen produced and released by plants?
+
+            --------------------------
+
+            Example context:
+            ["The gravitational pull of the moon on the Earth influences the tides.", "The position of the sun relative to the Earth and the moon also affects tidal patterns."]
+            Example input:
+            Tell me about high tides.
+            Example rewritten input:
+            Explain how the combined gravitational effects of the moon and the sun's relative positioning influence Earth's tidal phenomena.
+            **
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:            
+            """
+        )
+    '''
+    @staticmethod
+    def multi_context_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. `Input` debe reescribirse de manera que requiera que los lectores utilicen información de todos los elementos de `Context`. 
+            2. `Rewritten Input` debe ser completamente respondible con la información en `Context`. 
+            3. `Rewritten Input` debe ser conciso y comprensible para los humanos.
+            4. `Rewritten Input` no debe contener frases como 'basado en el contexto proporcionado' o 'según el contexto'.
+            5. `Rewritten Input` no debe contener más de 15 palabras. Usa abreviaturas cuando sea posible.
+            
+            **
+            EJEMPLOS
+    
+            Ejemplo de contexto:
+            ["Vacunas introducen una forma atenuada o muerta del patógeno en el cuerpo humano.", "Esta exposición ayuda al sistema inmunitario a aprender a reconocer y combatir el patógeno en el futuro."]
+            Ejemplo de entrada:
+            ¿Cómo funcionan las vacunas?
+            Ejemplo de entrada reescrita:
+            ¿Cómo la introducción de un patógeno modificado prepara al sistema inmunitario para futuros encuentros?
+    
+            --------------------------
+            
+            Ejemplo de contexto:
+            ["Las plantas realizan la fotosíntesis, usando la luz solar para convertir dióxido de carbono y agua en glucosa y oxígeno.", "La clorofila en las hojas de las plantas absorbe la luz solar, iniciando el proceso de fotosíntesis.", "El oxígeno es un subproducto del proceso de fotosíntesis y se libera a la atmósfera."]
+            Ejemplo de entrada:
+            Explica cómo las plantas producen oxígeno.
+            Ejemplo de entrada reescrita:
+            Teniendo en cuenta el papel de la clorofila en la absorción de luz solar y la fotosíntesis, ¿cómo se produce y libera oxígeno en las plantas?
+    
+            --------------------------
+            
+            Ejemplo de contexto:
+            ["La atracción gravitatoria de la luna sobre la Tierra influye en las mareas.", "La posición del sol respecto a la Tierra y la luna también afecta los patrones de marea."]
+            Ejemplo de entrada:
+            Háblame de las mareas altas.
+            Ejemplo de entrada reescrita:
+            Explica cómo los efectos gravitacionales combinados de la luna y la posición relativa del sol influyen en los fenómenos de las mareas en la Tierra.
+            **
+    
+            Contexto:
+            {context}
+            Entrada:
+            {input}
+            Entrada reescrita:
+            """
+        )
+    '''
+    @staticmethod
+    def reasoning_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. If `Input` can be solved with just a few simple thinking processes, you can rewrite it to explicitly request multiple-step reasoning.
+            2. `Rewritten Input` should require readers to make multiple logical connections or inferences.
+            3. `Rewritten Input` should be concise and understandable by humans.
+            4. `Rewritten Input` should not contain phrases like  'based on the provided context' or 'according to the context'.
+            5. `Rewritten Input` must be fully answerable from information in `Context`. 
+            6. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+
+            Example context:
+            Chlorophyll allows plants to absorb energy from light, and this energy is used to convert carbon dioxide and water into glucose and oxygen, a process known as photosynthesis.
+            Example input:
+            Why are plants green?
+            Example rewritten input:
+            How does chlorophyll's role in absorbing light relate to plants' green color and their ability to produce glucose?
+        
+            --------------------------
+            
+            Example context:
+            The greenhouse effect occurs when the Earth's atmosphere traps solar radiation, caused by gases such as carbon dioxide, methane, and water vapor. This process maintains the planet's temperature but can lead to increased global temperatures when exacerbated by human activities.
+            Example input:
+            What causes seasons to change?
+            Example rewritten input: 
+            Given the trapping of solar radiation by atmospheric gases, explain how the enhanced activity impacts Earth's climate.
+
+            --------------------------
+
+            Example context:
+            Economic theories suggest that market demand and supply determine prices, but government policies can also influence market dynamics through regulations, taxes, and subsidies.
+            Example input:
+            Identify the primary factors that determine the price of goods in a market.
+            Example rewritten input:
+            Examine how the interplay of market demand, supply dynamics, and government policy interventions collectively shapes the pricing mechanism of goods within a market ecosystem.
+            **
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:            
+            """
+        )
+    '''
+    @staticmethod
+    def reasoning_evolution(input, context):
+        """
+        Método estático que extiende la instrucción base para reescribir la entrada
+        de modo que requiera razonamiento de múltiples pasos.
+        """
+        # Combina la instrucción base con directrices específicas para el razonamiento
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Si `Input` puede resolverse con pocos procesos de pensamiento simples, reescríbela para solicitar razonamiento de múltiples pasos.
+            2. `Rewritten Input` debe requerir que los lectores realicen múltiples conexiones lógicas o inferencias.
+            3. `Rewritten Input` debe ser conciso y comprensible para humanos.
+            4. `Rewritten Input` no debe contener frases como 'basado en el contexto proporcionado' o 'según el contexto'.
+            5. `Rewritten Input` debe ser completamente respondible con la información en `Context`.
+            6. `Rewritten Input` no debe contener más de 15 palabras. Usa abreviaturas cuando sea posible.
+            
+            **
+            EJEMPLOS
+    
+            Ejemplo de contexto:
+            La clorofila permite a las plantas absorber energía de la luz, y esa energía se utiliza para convertir dióxido de carbono y agua en glucosa y oxígeno, proceso conocido como fotosíntesis.
+            Ejemplo de entrada:
+            ¿Por qué las plantas son verdes?
+            Ejemplo de entrada reescrita:
+            ¿Cómo se relaciona la función de la clorofila en la absorción de luz con el color verde y la producción de glucosa en las plantas?
+    
+            --------------------------
+    
+            Ejemplo de contexto:
+            El efecto invernadero ocurre cuando la atmósfera terrestre atrapa radiación solar, causada por gases como dióxido de carbono, metano y vapor de agua. Este proceso mantiene la temperatura del planeta pero puede conducir a un aumento de temperaturas globales cuando las actividades humanas lo agravan.
+            Ejemplo de entrada:
+            ¿Qué causa el cambio de estaciones?
+            Ejemplo de entrada reescrita:
+            Dado el atrapamiento de radiación solar por gases atmosféricos, explica cómo esta actividad intensificada afecta el clima de la Tierra.
+    
+            --------------------------
+    
+            Ejemplo de contexto:
+            Las teorías económicas sugieren que la oferta y demanda del mercado determinan los precios, pero las políticas gubernamentales también pueden influir en la dinámica del mercado mediante regulaciones, impuestos y subsidios.
+            Ejemplo de entrada:
+            Identifica los factores principales que determinan el precio de los bienes en un mercado.
+            Ejemplo de entrada reescrita:
+            Examina cómo la interacción entre demanda, oferta y políticas gubernamentales conforma colectivamente el mecanismo de fijación de precios de los bienes en un ecosistema de mercado.
+            **
+    
+            Contexto:
+            {context}
+            Input:
+            {input}
+            Entrada reescrita:
+            """
+        )
+
+    '''
+
+    @staticmethod
+    def concretizing_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Rewrite `Input` by replacing general concepts/inquiries with more specific ones.
+            2. `Rewritten Input` should be concise and understandable by humans.
+            3. `Rewritten Input` should not contain phrases like  'based on the provided context' or 'according to the context'.
+            4. `Rewritten Input` must be fully answerable from information in `Context`.  
+            5. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+            Example context:
+            Rainforests are home to over half of the world's plant and animal species, making them key to maintaining global biodiversity. The variety of life found in these ecosystems contributes to genetic diversity, which is crucial for adaptation and survival amid changing environmental conditions. This biodiversity also supports ecosystem resilience, enabling forests to recover from disturbances.
+            The biodiversity in rainforests plays a significant role in human well-being, providing essential services such as air and water purification, disease control, and pollination of crops. Additionally, many medicines are derived from rainforest plants, highlighting the importance of these ecosystems for medical research and healthcare.
+            Example input: 
+            Why is the biodiversity of rainforests important?
+            Example rewritten input:
+            How does the extensive biodiversity found in rainforests, encompassing over half of the world's plant and animal species, contribute to global biodiversity maintenance, and what role does this diversity play in enhancing ecosystem resilience, human health through disease control, crop pollination, and the development of medicines derived from rainforest plants?
+
+            --------------------------
+
+            Example context:
+            Bees play a critical role in pollinating flowering plants, including many fruits and vegetables, contributing to the diversity of plant life and the production of crops. Their activity supports the growth of trees, flowers, and other plants, which serve as food and shelter for numerous animals, thus maintaining ecosystem balance.
+            Beyond their impact on food crops, bees contribute to wild plant growth by pollinating a wide range of plants outside of agricultural settings. This pollination is vital for the reproduction of many plants, affecting entire ecosystems' health and sustainability.
+            Example input: 
+            What is the role of bees in ecosystems?
+            Example rewritten input:
+            How do bees, through their pollination of flowering plants, including a multitude of fruits and vegetables, significantly influence the diversity of plant life and agricultural productivity, and in what ways do their activities extend beyond agricultural settings to support the growth of trees, flowers, and other plants, thereby providing essential resources for various animal species and contributing to the overall balance and sustainability of ecosystems?
+
+            --------------------------
+
+            Example context:
+            Solar power generation relies on photovoltaic cells to convert sunlight into electricity. These cells are made of materials that exhibit the photovoltaic effect, which occurs when light photons are absorbed by the material, causing the generation of electrical current.
+            Solar panels, composed of many photovoltaic cells, collect sunlight and convert it into electrical power. This energy can then be used directly or stored in batteries for later use, providing a renewable and sustainable source of power with minimal environmental impact.
+            Example input: 
+            What are the principles behind solar power generation?
+            Example rewritten input:
+            How do photovoltaic cells work to convert sunlight into electrical power, and what role do solar panels play in this process, including energy storage for sustainable use?
+            **
+
+            Input:
+            {input}
+            Context:
+            {context}
+            Rewritten Input:
+            """
+        )
+    '''
+    @staticmethod
+    def concretizing_evolution(input, context):
+        # Método estático que genera la instrucción para reescribir un input de manera más específica según el contexto.
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Reescribe `Entrada` reemplazando conceptos o preguntas generales por otros más específicos.
+            2. La `Entrada reescrita` debe ser concisa y comprensible para humanos.
+            3. La `Entrada reescrita` no debe contener expresiones como 'basado en el contexto proporcionado' ni 'según el contexto'.
+            4. La `Entrada reescrita` debe ser completamente contestable con la información en `Contexto`.
+            5. La `Entrada reescrita` no debe superar las 15 palabras. Usa abreviaciones siempre que sea posible.
+
+            **
+            EJEMPLOS
+            Contexto de ejemplo:
+            Las selvas tropicales albergan más de la mitad de las especies de plantas y animales del mundo, convirtiéndolas en clave para mantener la biodiversidad global. La variedad de vida presente en estos ecosistemas contribuye a la diversidad genética, crucial para la adaptación y supervivencia ante condiciones ambientales cambiantes. Esta biodiversidad también sostiene la resiliencia de los ecosistemas, permitiendo que los bosques se recuperen de perturbaciones.
+            La biodiversidad en las selvas tropicales desempeña un papel significativo en el bienestar humano, proporcionando servicios esenciales como la purificación del aire y el agua, el control de enfermedades y la polinización de cultivos. Además, muchos medicamentos se derivan de plantas de la selva, lo que destaca la importancia de estos ecosistemas para la investigación médica y la atención sanitaria.
+            Ejemplo de entrada:
+            ¿Por qué es importante la biodiversidad de las selvas tropicales?
+            Ejemplo de entrada reescrita:
+            ¿Cómo contribuye la amplia biodiversidad de las selvas tropicales, que incluye más de la mitad de las especies de plantas y animales del mundo, al mantenimiento de la biodiversidad global y qué papel desempeña esta diversidad en mejorar la resiliencia de los ecosistemas, la salud humana mediante el control de enfermedades, la polinización de cultivos y el desarrollo de medicamentos derivados de plantas de la selva?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            Las abejas desempeñan un papel crítico en la polinización de plantas con flores, incluidos muchos frutos y hortalizas, contribuyendo a la diversidad de la vida vegetal y a la producción de cultivos. Su actividad favorece el crecimiento de árboles, flores y otras plantas, que sirven de alimento y refugio para numerosos animales, manteniendo así el equilibrio del ecosistema.
+            Más allá de su impacto en los cultivos alimentarios, las abejas contribuyen al crecimiento de plantas silvestres al polinizar una amplia variedad de especies fuera del entorno agrícola. Esta polinización es vital para la reproducción de muchas plantas, afectando la salud y la sostenibilidad de ecosistemas enteros.
+            Ejemplo de entrada:
+            ¿Cuál es el papel de las abejas en los ecosistemas?
+            Ejemplo de entrada reescrita:
+            ¿Cómo influyen las abejas, mediante la polinización de plantas con flores, incluidos numerosos frutos y hortalizas, en la diversidad de la vida vegetal y la productividad agrícola, y de qué manera sus actividades se extienden más allá de los entornos agrícolas para apoyar el crecimiento de árboles, flores y otras plantas, proporcionando recursos esenciales para diversas especies animales y contribuyendo al equilibrio y la sostenibilidad de los ecosistemas?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            La generación de energía solar depende de celdas fotovoltaicas que convierten la luz solar en electricidad. Estas celdas están fabricadas con materiales que exhiben el efecto fotovoltaico, el cual ocurre cuando los fotones de luz son absorbidos por el material, provocando la generación de corriente eléctrica.
+            Los paneles solares, compuestos por múltiples celdas fotovoltaicas, captan la luz solar y la convierten en energía eléctrica. Esta energía puede usarse directamente o almacenarse en baterías para su uso posterior, proporcionando una fuente de energía renovable y sostenible con un impacto ambiental mínimo.
+            Ejemplo de entrada:
+            ¿Cuáles son los principios detrás de la generación de energía solar?
+            Ejemplo de entrada reescrita:
+            ¿Cómo funcionan las celdas fotovoltaicas para convertir la luz solar en energía eléctrica y qué papel desempeñan los paneles solares en este proceso, incluido el almacenamiento de energía para un uso sostenible?
+            **
+
+            Entrada:
+            {input}
+            Contexto:
+            {context}
+            Entrada reescrita:
+            """
+    )
+
+    '''
+
+    @staticmethod
+    def constrained_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Rewrite `Input` by adding at least one more constraints/requirements.
+            2. `Rewritten Input` must be fully answerable from information in `Context`. 
+            5. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+            Example context:
+            Rainforests are home to over half of the world's plant and animal species, making them key to maintaining global biodiversity. The variety of life found in these ecosystems contributes to genetic diversity, which is crucial for adaptation and survival amid changing environmental conditions. This biodiversity also supports ecosystem resilience, enabling forests to recover from disturbances.
+            The biodiversity in rainforests plays a significant role in human well-being, providing essential services such as air and water purification, disease control, and pollination of crops. Additionally, many medicines are derived from rainforest plants, highlighting the importance of these ecosystems for medical research and healthcare.
+            Example input: 
+            Why is the biodiversity of rainforests important?
+            Example rewritten input:
+            How does the biodiversity of rainforests contribute to ecosystem resilience and recovery from disturbances, and in what ways does it impact human well-being through services such as air and water purification, disease control, and crop pollination?
+
+            --------------------------
+
+            Example context:
+            Bees play a critical role in pollinating flowering plants, including many fruits and vegetables, contributing to the diversity of plant life and the production of crops. Their activity supports the growth of trees, flowers, and other plants, which serve as food and shelter for numerous animals, thus maintaining ecosystem balance.
+            Beyond their impact on food crops, bees contribute to wild plant growth by pollinating a wide range of plants outside of agricultural settings. This pollination is vital for the reproduction of many plants, affecting entire ecosystems' health and sustainability.
+            Example input: 
+            What is the role of bees in ecosystems?
+            Example rewritten input:
+            Considering the pivotal role bees play in pollinating both agricultural crops and wild plants, thereby contributing to the diversity of plant life and supporting the foundation of food chains, analyze how bees influence the growth and sustainability of various ecosystems.
+
+            --------------------------
+
+            Example context:
+            Solar power generation relies on photovoltaic cells to convert sunlight into electricity. These cells are made of materials that exhibit the photovoltaic effect, which occurs when light photons are absorbed by the material, causing the generation of electrical current.
+            Solar panels, composed of many photovoltaic cells, collect sunlight and convert it into electrical power. This energy can then be used directly or stored in batteries for later use, providing a renewable and sustainable source of power with minimal environmental impact.
+            Example input: 
+            What are the principles behind solar power generation?
+            Example rewritten input:
+            Examine the significance of rainforest biodiversity in sustaining ecosystem resilience and providing essential services such as disease control and crop pollination, alongside its critical role in medical research and the development of new medicines. Consider the broader implications of biodiversity loss on global ecological balance and human health.
+            **
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:
+            """
+        )
+    '''
+    @staticmethod
+    def constrained_evolution(input, context):
+        # Método estático que genera la instrucción para reescribir un input añadiendo restricciones
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Reescribe `Entrada` añadiendo al menos una restricción o requisito adicional.
+            2. La `Entrada reescrita` debe ser completamente contestable con la información en `Contexto`.  
+            5. La `Entrada reescrita` no debe superar las 15 palabras. Usa abreviaciones siempre que sea posible.
+
+            **
+            EJEMPLOS
+            Contexto de ejemplo:
+            Las selvas tropicales albergan más de la mitad de las especies de plantas y animales del mundo, convirtiéndolas en clave para mantener la biodiversidad global. La variedad de vida presente en estos ecosistemas contribuye a la diversidad genética, crucial para la adaptación y supervivencia ante condiciones ambientales cambiantes. Esta biodiversidad también sostiene la resiliencia de los ecosistemas, permitiendo que los bosques se recuperen de perturbaciones.
+            La biodiversidad en las selvas tropicales desempeña un papel significativo en el bienestar humano, proporcionando servicios esenciales como la purificación del aire y el agua, el control de enfermedades y la polinización de cultivos. Además, muchos medicamentos se derivan de plantas de la selva, lo que destaca la importancia de estos ecosistemas para la investigación médica y la atención sanitaria.
+            Ejemplo de entrada:
+            ¿Por qué es importante la biodiversidad de las selvas tropicales?
+            Ejemplo de entrada reescrita:
+            ¿Cómo contribuye la biodiversidad de las selvas tropicales a la resiliencia y recuperación de ecosistemas, y qué impacto tiene en el bienestar humano mediante purificación de aire, control de enfermedades y polinización de cultivos?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            Las abejas desempeñan un papel crítico en la polinización de plantas con flores, incluidos muchos frutos y hortalizas, contribuyendo a la diversidad de la vida vegetal y a la producción de cultivos. Su actividad favorece el crecimiento de árboles, flores y otras plantas, que sirven de alimento y refugio para numerosos animales, manteniendo así el equilibrio del ecosistema.
+            Más allá de su impacto en los cultivos alimentarios, las abejas contribuyen al crecimiento de plantas silvestres al polinizar una amplia variedad de especies fuera del entorno agrícola. Esta polinización es vital para la reproducción de muchas plantas, afectando la salud y la sostenibilidad de ecosistemas enteros.
+            Ejemplo de entrada:
+            ¿Cuál es el papel de las abejas en los ecosistemas?
+            Ejemplo de entrada reescrita:
+            Considerando el papel fundamental de las abejas en la polinización de cultivos agrícolas y plantas silvestres, analiza cómo influyen en la diversidad vegetal, la base de las cadenas tróficas y la sostenibilidad de múltiples ecosistemas.
+
+            --------------------------
+
+            Contexto de ejemplo:
+            La generación de energía solar depende de celdas fotovoltaicas que convierten la luz solar en electricidad. Estas celdas están fabricadas con materiales que exhiben el efecto fotovoltaico, que ocurre cuando los fotones de luz son absorbidos, generando corriente eléctrica.
+            Los paneles solares, compuestos por múltiples celdas fotovoltaicas, captan la luz solar y la convierten en energía eléctrica. Esta energía puede usarse directamente o almacenarse en baterías para uso posterior, ofreciendo una fuente renovable con impacto ambiental mínimo.
+            Ejemplo de entrada:
+            ¿Cuáles son los principios detrás de la generación de energía solar?
+            Ejemplo de entrada reescrita:
+            Examina la importancia de la biodiversidad de las selvas tropicales en la resiliencia de ecosistemas y servicios como control de enfermedades y polinización de cultivos, junto a su papel en investigación médica y desarrollo de medicamentos. Considera las implicaciones de su pérdida en el equilibrio ecológico global y la salud humana.
+
+            **
+            Contexto:
+            {context}
+            Entrada:
+            {input}
+            Entrada reescrita:
+            """
+    )
+
+    '''
+
+    @staticmethod
+    def comparative_question_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Rewrite `Input` to focus on comparing two or more entities, concepts, or processes.
+            2. `Rewritten Input` should encourage a detailed comparison that highlights similarities and differences.
+            3. `Rewritten Input` must be fully answerable from information in `Context`. 
+            4. `Rewritten Input` should be concise and understandable by humans.
+            5. `Rewritten Input` should not contain phrases like  'based on the provided context' or 'according to the context'.
+            6. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+            Example context:
+            "Water boils at 100°C (212°F) at sea level, but boiling point decreases with altitude due to lower atmospheric pressure. In contrast, alcohol boils at about 78°C (172°F)."
+            Example input: 
+            What happens to water as it boils?
+            Example rewritten input:
+            How does the boiling point of water at sea level compare to that of alcohol, and how does altitude affect water's boiling point?
+
+            --------------------------
+
+            Example context:
+            "Photosynthesis in plants involves converting carbon dioxide and water into glucose and oxygen, using sunlight. Cellular respiration in animals converts glucose and oxygen back into carbon dioxide and water, releasing energy."
+            Example input: 
+            How do plants and animals process energy?
+            Example rewritten input:
+            Compare the processes of photosynthesis in plants and cellular respiration in animals, focusing on inputs and outputs of each process.
+
+            --------------------------
+
+            Example context:
+            "The Renaissance was a period of significant cultural, artistic, and scientific rebirth that began in the 14th century, primarily in Italy. The Enlightenment, occurring mainly in the 18th century, centered around reason, science, and individualism, significantly influencing European thought."
+            Example input: 
+            What was the Renaissance?
+            Example rewritten input:
+            Contrast the main focuses and impacts of the Renaissance and the Enlightenment on European thought and culture.
+
+            --------------------------
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:
+            """
+        )
+    '''
+    @staticmethod
+    def comparative_question_evolution(input, context):
+        # Método estático que genera la instrucción para reescribir un input centrado en la comparación
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Reescribe `Entrada` enfocándote en comparar dos o más entidades, conceptos o procesos.
+            2. La `Entrada reescrita` debe incitar a una comparación detallada que resalte similitudes y diferencias.
+            3. La `Entrada reescrita` debe ser totalmente contestable con la información en `Contexto`.
+            4. La `Entrada reescrita` debe ser concisa y comprensible para humanos.
+            5. La `Entrada reescrita` no debe contener expresiones como 'basado en el contexto proporcionado' ni 'según el contexto'.
+            6. La `Entrada reescrita` no debe superar las 15 palabras. Usa abreviaciones siempre que sea posible.
+
+            **
+            EJEMPLOS
+            Contexto de ejemplo:
+            "El agua hierve a 100°C (212°F) al nivel del mar, pero el punto de ebullición disminuye con la altitud debido a la menor presión atmosférica. En contraste, el alcohol hierve a unos 78°C (172°F)."
+            Ejemplo de entrada:
+            ¿Qué sucede con el agua al hervir?
+            Ejemplo de entrada reescrita:
+            ¿Cómo se compara el punto de ebullición del agua al nivel del mar con el del alcohol y cómo influye la altitud en el punto de ebullición del agua?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            "La fotosíntesis en plantas convierte dióxido de carbono y agua en glucosa y oxígeno usando luz solar. La respiración celular en animales convierte glucosa y oxígeno de nuevo en dióxido de carbono y agua, liberando energía."
+            Ejemplo de entrada:
+            ¿Cómo procesan energía plantas y animales?
+            Ejemplo de entrada reescrita:
+            Compara los procesos de fotosíntesis en plantas y respiración celular en animales, enfocándote en insumos y productos de cada proceso.
+
+            --------------------------
+
+            Contexto de ejemplo:
+            "El Renacimiento fue un período de renacimiento cultural, artístico y científico que comenzó en el siglo XIV, principalmente en Italia. La Ilustración, ocurrida principalmente en el siglo XVIII, se centró en la razón, la ciencia y el individualismo, influyendo significativamente en el pensamiento europeo."
+            Ejemplo de entrada:
+            ¿Qué fue el Renacimiento?
+            Ejemplo de entrada reescrita:
+            Contrasta los enfoques principales e impactos del Renacimiento y la Ilustración en el pensamiento y la cultura europeos.
+
+            --------------------------
+
+            Contexto:
+            {context}
+            Entrada:
+            {input}
+            Entrada reescrita:
+            """
+    )
+
+    '''
+
+    @staticmethod
+    def hypothetical_scenario_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Rewrite `Input` to include a hypothetical or speculative scenario that is relevant to the `Context`.
+            2. `Rewritten Input` should encourage the reader to apply knowledge from the `Context` to imagine or deduce outcomes.
+            3. `Rewritten Input` should be concise, clear, and understandable by humans.
+            4. `Rewritten Input` should not contain phrases like 'based on the provided context' or 'according to the context'.
+            5. `Rewritten Input` must be fully answerable from information in `Context`.
+            6. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+
+            Example context:
+            The greenhouse effect is a natural process where the Earth's atmosphere traps some of the Sun's energy, warming the planet to a temperature that supports life. Human activities, particularly the emission of greenhouse gases like carbon dioxide and methane, have intensified this effect, leading to global warming and climate change.
+            Example input:
+            What are the consequences of the greenhouse effect?
+            Example rewritten input:
+            Imagine a world where greenhouse gas emissions were doubled overnight. How might this intensified greenhouse effect impact global climate patterns and ecosystems?
+
+            --------------------------
+
+            Example context:
+            Antibiotics are drugs used to treat bacterial infections. They work by killing bacteria or preventing their growth. However, overuse and misuse of antibiotics have led to the development of antibiotic-resistant bacteria, which are harder to treat because they can withstand the drugs designed to kill them.
+            Example input:
+            How do antibiotics work?
+            Example rewritten input:
+            In a scenario where a new antibiotic-resistant superbug emerges, how would the principles of antibiotic action and resistance influence our approach to treatment?
+
+            --------------------------
+
+            Example context:
+            Quantum computing relies on the principles of quantum mechanics to process information, utilizing quantum bits or qubits. These qubits can exist in multiple states simultaneously, allowing quantum computers to perform complex calculations much faster than traditional computers.
+            Example input:
+            What is quantum computing?
+            Example rewritten input:
+            Suppose a quantum computer was tasked with solving a problem that currently takes traditional computers centuries to solve. How might the unique capabilities of quantum computing change the outcome?
+            **
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:
+            """
+        )
+    '''
+    @staticmethod
+    def hypothetical_scenario_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Reescribe `Input` para incluir un escenario hipotético o especulativo relevante al `Context`.
+            2. El `Rewritten Input` debe incitar al lector a aplicar conocimientos del `Context` para imaginar o deducir resultados.
+            3. El `Rewritten Input` debe ser conciso, claro y comprensible para humanos.
+            4. El `Rewritten Input` no debe contener frases como 'basado en el `Context` proporcionado' o 'según el `Context`'.
+            5. El `Rewritten Input` debe poder contestarse completamente con la información del `Context`.
+            6. El `Rewritten Input` no debe contener más de 15 palabras. Usa abreviaciones siempre que sea posible.
+
+            **
+            EJEMPLOS
+
+            Contexto de ejemplo:
+            El efecto invernadero es un proceso natural donde la atmósfera terrestre atrapa parte de la energía del Sol, calentando el planeta a una temperatura que soporta la vida. Las actividades humanas, especialmente la emisión de gases de efecto invernadero como dióxido de carbono y metano, han intensificado este efecto, provocando calentamiento global y cambio climático.
+            Entrada de ejemplo:
+            ¿Cuáles son las consecuencias del efecto invernadero?
+            Entrada reescrita de ejemplo:
+            Imagina un mundo donde las emisiones de gases invernadero se duplican de la noche a la mañana. ¿Cómo afectaría esto a los patrones climáticos y ecosistemas globales?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            Los antibióticos son fármacos usados para tratar infecciones bacterianas. Actúan matando bacterias o impidiendo su crecimiento. Sin embargo, el uso excesivo y el mal uso han llevado al desarrollo de bacterias resistentes, más difíciles de tratar porque soportan los fármacos.
+            Entrada de ejemplo:
+            ¿Cómo funcionan los antibióticos?
+            Entrada reescrita de ejemplo:
+            En un escenario donde emerge una superbacteria resistente, ¿cómo influirían los principios de acción y resistencia de los antibióticos en nuestro enfoque de tratamiento?
+
+            --------------------------
+
+            Contexto de ejemplo:
+            La computación cuántica se basa en los principios de la mecánica cuántica para procesar información usando qubits, que pueden estar en múltiples estados simultáneamente, permitiendo cálculos complejos mucho más rápidos que en computadoras tradicionales.
+            Entrada de ejemplo:
+            ¿Qué es la computación cuántica?
+            Entrada reescrita de ejemplo:
+            Supón que una computadora cuántica debe resolver un problema que lleva siglos a las tradicionales. ¿Cómo cambiarían sus capacidades únicas el resultado?
+            **
+
+            Contexto:
+            {context}
+            Entrada:
+            {input}
+            Entrada reescrita:
+            """
+        )
+
+    '''
+
+    @staticmethod
+    def in_breadth_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Rewrite `Input` to create a brand new prompt.
+            2. `Rewritten Input` should belong to the same domain as the `input` but be even more rare.
+            3. `Rewritten Input` should be concise, clear, and understandable by humans.
+            4. `Rewritten Input` should not contain phrases like 'based on the provided context' or 'according to the context'.
+            5. `Rewritten Input` should not contain more than 15 words. Use abbreviation wherever possible.
+
+            **
+            EXAMPLES
+
+            Example context:
+            Wearable technology has revolutionized personal health monitoring, allowing individuals to track vital signs and activity levels in real time.
+            Example input:
+            Explore the impact of wearable technology on personal health management.
+            Example rewritten input:
+            Delve into the development of implantable health devices and their potential to transform chronic disease management.
+
+            --------------------------
+
+            Example context:
+            Quantum computing leverages the principles of quantum mechanics to process information, offering significant advancements over traditional computing methods.
+            Example input:
+            How is quantum computing different from traditional computing?
+            Example rewritten input:
+            Explore the potential of quantum cryptography in enhancing cybersecurity measures beyond current encryption standards
+
+            --------------------------
+
+            Example context:
+            Virtual reality (VR) offers immersive learning experiences, transforming educational methodologies by providing interactive and engaging ways to acquire knowledge, especially in fields requiring practical skills.
+            Example input:
+            What impact does virtual reality (VR) have on education?
+            Example rewritten input:
+            Investigate the use of VR simulations in medical training to enhance practical skills and decision-making under pressure.
+            **
+
+            Context:
+            {context}
+            Input:
+            {input}
+            Rewritten Input:
+            """
+        )
+    '''
+    @staticmethod
+    def in_breadth_evolution(input, context):
+        return (
+            EvolutionTemplate.base_instruction
+            + f"""
+            1. Reescribe `Input` para crear un prompt completamente nuevo.
+            2. El `Rewritten Input` debe pertenecer al mismo dominio que el `Input` pero ser aún más raro.
+            3. El `Rewritten Input` debe ser conciso, claro y comprensible para humanos.
+            4. El `Rewritten Input` no debe contener frases como 'basado en el contexto proporcionado' o 'según el contexto'.
+            5. El `Rewritten Input` no debe contener más de 15 palabras. Usa abreviaciones siempre que sea posible.
+
+            **
+            EJEMPLOS
+
+            Contexto de ejemplo:
+            La tecnología vestible ha revolucionado el monitoreo de la salud personal, permitiendo a los individuos registrar signos vitales y niveles de actividad en tiempo real.
+            Entrada de ejemplo:
+            Explora el impacto de la tecnología vestible en la gestión de la salud personal.
+            Entrada reescrita de ejemplo:
+            Profundiza en el desarrollo de dispositivos de salud implantables y su potencial para transformar el manejo de enfermedades crónicas.
+
+            --------------------------
+
+            Contexto de ejemplo:
+            La computación cuántica aprovecha los principios de la mecánica cuántica para procesar información, ofreciendo avances significativos sobre los métodos tradicionales de computación.
+            Entrada de ejemplo:
+            ¿Cómo se diferencia la computación cuántica de la tradicional?
+            Entrada reescrita de ejemplo:
+            Explora el potencial de la criptografía cuántica para mejorar las medidas de ciberseguridad más allá de los estándares de cifrado actuales
+
+            --------------------------
+
+            Contexto de ejemplo:
+            La realidad virtual (RV) ofrece experiencias de aprendizaje inmersivas, transformando metodologías educativas al proporcionar formas interactivas y atractivas de adquirir conocimiento, especialmente en campos que requieren habilidades prácticas.
+            Entrada de ejemplo:
+            ¿Qué impacto tiene la realidad virtual (RV) en la educación?
+            Entrada reescrita de ejemplo:
+            Investiga el uso de simulaciones de RV en la formación médica para mejorar habilidades prácticas y la toma de decisiones bajo presión.
+            **
+
+            Contexto:
+            {context}
+            Entrada:
+            {input}
+            Entrada reescrita:
+            """
+        )
